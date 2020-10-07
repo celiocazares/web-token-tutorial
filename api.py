@@ -8,7 +8,6 @@ from functools import wraps
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'thisissecret'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
 db = SQLAlchemy(app)
@@ -151,6 +150,7 @@ def delete_user(current_user, public_id):
 
 @app.route('/login', methods=['POST'])
 def login():
+    app.config['SECRET_KEY'] = 'thisissecret'
     auth = request.authorization
 
     if not auth or not auth.username or not auth.password:
@@ -168,6 +168,13 @@ def login():
         return jsonify({'token': token.decode('UTF-8')})
 
     return make_response('Could not verify', 401, {'WWW-Authenticate':  'Basic realm = "Login required! "'})
+
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    app.config['SECRET_KEY'] = 'invalid'
+
+    return jsonify({'message': 'logged out'})
 
 
 # TODO
