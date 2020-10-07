@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
@@ -9,6 +10,7 @@ from functools import wraps
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+CORS(app)
 
 db = SQLAlchemy(app)
 
