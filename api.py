@@ -174,33 +174,81 @@ def login():
 @app.route('/todo', methods=['GET'])
 @token_required
 def get_all_todos(current_user):
-    return ''
+
+    todos = Todo.query.filter_by(user_id=current_user.id).all()
+    result = []
+
+    for todo in todos:
+        todo_data = {}
+        todo_data['id'] = todo.id
+        todo_data['text'] = todo.text
+        todo_data['complete'] = todo.complete
+        result.append(todo_data)
+
+    return jsonify({'todos': result})
 
 
 @app.route('/todo/<todo_id>', methods=['GET'])
 @token_required
 def get_todo_by_id(current_user, todo_id):
-    return ''
+
+    selected_todo = Todo.query.filter_by(
+        id=todo_id, user_id=current_user.id).first()
+
+    if not selected_todo:
+        return jsonify({'message': 'There is no todo with this id!'})
+
+    result = []
+    todo_mapped = {}
+    todo_mapped['id'] = selected_todo.id
+    todo_mapped['text'] = selected_todo.text
+    todo_mapped['complete'] = selected_todo.complete
+    result.append(todo_mapped)
+    return jsonify({'todos': result})
 
 
 @app.route('/todo', methods=['POST'])
 @token_required
 def create_todo(current_user):
-    return ''
+
+    data = request.get_json()
+
+    new_todo = Todo(text=data['text'], complete=False, user_id=current_user.id)
+
+    db.session.add(new_todo)
+    db.session.commit()
+
+    return jsonify({'message': 'Todo created!'})
 
 
 @app.route('/todo/<todo_id>', methods=['DELETE'])
 @token_required
 def delete_todo(current_user, todo_id):
-    return ''
+    selected_todo = Todo.query.filter_by(
+        id=todo_id, user_id=current_user.id).first()
+    if not selected_todo:
+        return jsonify({'message': 'No todo found'})
+
+    db.session.delete(selected_todo)
+    db.session.commit()
+
+    return jsonify({'message': 'Todo deleted successfully!'})
 
 
 @app.route('/todo/<todo_id>', methods=['PUT'])
 @token_required
 def complete_todo(current_user, todo_id):
-    return ''
+    selected_todo = Todo.query.filter_by(
+        id=todo_id, user_id=current_user.id).first()
 
-# PAUSED ON 38:54 https://www.youtube.com/watch?v=WxGBoY5iNXY
+    if not selected_todo:
+        return jsonify({'message': 'No todo found!'})
+
+    selected_todo.complete = True
+    db.session.commit()
+    return jsonify({'message': 'Todo set as complete!'})
+
+# PAUSED ON 40:54 https://www.youtube.com/watch?v=WxGBoY5iNXY
 
 
 if __name__ == '__main__':
