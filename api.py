@@ -7,6 +7,9 @@ import jwt
 import datetime
 from functools import wraps
 
+# UTILS
+from utils import mapping
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -153,21 +156,25 @@ def delete_user(current_user, public_id):
 @app.route('/login', methods=['POST'])
 def login():
     app.config['SECRET_KEY'] = 'thisissecret'
-    auth = request.authorization
+    # auth = request.authorization
+    auth = request.get_json()
 
-    if not auth or not auth.username or not auth.password:
+    if not auth or not auth['username'] or not auth['password']:
         return make_response('Could not verify', 401, {'WWW-Authenticate':  'Basic realm = "Login required! "'})
 
-    user = User.query.filter_by(name=auth.username).first()
+    user = User.query.filter_by(name=auth['username']).first()
 
     if not user:
-        return make_response('Could not verify', 401, {'WWW-Authenticate':  'Basic realm = "Login required! "'})
+        return jsonify({'message': 'Could not verify!'}), 401
+        # return make_response('Could not verify', 401, {'WWW-Authenticate':  'Basic realm = "Login required! "'})
 
-    if check_password_hash(user.password, auth.password):
+    if check_password_hash(user.password, auth['password']):
         token = jwt.encode({'public_id': user.public_id,
                             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
 
-        return jsonify({'token': token.decode('UTF-8')})
+        mapped_user = mapping.map_user(user)
+        mapped_user['token'] = token.decode('UTF-8')
+        return jsonify({'info': mapped_user})
 
     return make_response('Could not verify', 401, {'WWW-Authenticate':  'Basic realm = "Login required! "'})
 
