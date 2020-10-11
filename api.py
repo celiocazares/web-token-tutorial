@@ -170,7 +170,7 @@ def login():
 
     if check_password_hash(user.password, auth['password']):
         token = jwt.encode({'public_id': user.public_id,
-                            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+                            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)}, app.config['SECRET_KEY'])
 
         mapped_user = mapping.map_user(user)
         mapped_user['token'] = token.decode('UTF-8')
