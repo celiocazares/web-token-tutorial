@@ -123,12 +123,22 @@ def promote_user(current_user, public_id):
     if not current_user.admin:
         return jsonify({'message': 'Cannot access this function'})
 
+    data = request.get_json()
     user = User.query.filter_by(public_id=public_id).first()
 
     if not user:
         return jsonify({'message': 'No user found!'})
 
-    user.admin = True
+    # if not user.password or not user.name or not user.admin:
+    #     return jsonify({'message': 'You can not send empty params!'})
+
+    hashed_password = generate_password_hash(data['password'], method='sha256')
+
+    user.name = data['name']
+    # user.admin = data['admin']
+    # user.password = hashed_password
+
+    # user.admin = True
 
     db.session.commit()
 
